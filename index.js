@@ -3,13 +3,22 @@
  */
 
 const convertHSBToHSL = (h, s, b, a = 1) => {
-	const lightness = ((2 - s / 100) * b) / 2
-	let saturation = s * b
-	if (lightness > 0 && lightness <= 50) {
-		saturation = saturation / (100 - lightness * 2)
-	} else if (lightness > 50) {
-		saturation = saturation / (2 * lightness)
+	let lightness = ((2 - s / 100) * b) / 2
+	let saturation
+
+	if (lightness === 0 || lightness === 100) {
+		// Hue and saturation don't matter when lightness is 0% or 100%
+		saturation = 0
+	} else if (lightness > 0 && lightness <= 50) {
+		saturation = (s * b) / (100 - lightness * 2)
+	} else {
+		saturation = (s * b) / (2 * lightness)
 	}
+
+	// Clamp and round values to avoid exceeding limits and precision issues
+	saturation = Math.min(100, Math.max(0, Math.round(saturation * 100) / 100))
+	lightness = Math.round(lightness * 100) / 100
+
 	return `hsla(${h}, ${saturation}%, ${lightness}%, ${a})`
 }
 
