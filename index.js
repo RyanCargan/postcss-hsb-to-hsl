@@ -2,9 +2,15 @@
  * @type {import('postcss').PluginCreator}
  */
 
-const convertHSBToHSL = (h, s, b, a = 1) => {
+// Converts HSB to HSL, with an option to clamp the brightness
+const convertHSBToHSL = (h, s, b, a = 1, clampBrightness = true) => {
 	let lightness = ((2 - s / 100) * b) / 2
 	let saturation
+
+	if (clampBrightness) {
+		// Clamp brightness if the option is enabled
+		b = Math.min(100, Math.max(0, b))
+	}
 
 	if (lightness === 0 || lightness === 100) {
 		// Hue and saturation don't matter when lightness is 0% or 100%
@@ -22,7 +28,9 @@ const convertHSBToHSL = (h, s, b, a = 1) => {
 	return `hsla(${h}, ${saturation}%, ${lightness}%, ${a})`
 }
 
-module.exports = () => {
+module.exports = (opts = {}) => {
+	const clampBrightness = opts.clampBrightness !== false // Default to true
+
 	return {
 		postcssPlugin: 'postcss-hsb-to-hsl',
 		Once(root) {
@@ -40,7 +48,7 @@ module.exports = () => {
 						const s = parseInt(matches[3], 10)
 						const b = parseInt(matches[4], 10)
 						const a = matches[6] ? parseFloat(matches[6]) : 1
-						const hslValue = convertHSBToHSL(h, s, b, a)
+						const hslValue = convertHSBToHSL(h, s, b, a, clampBrightness)
 						decl.value = decl.value.replace(hsbValue, hslValue)
 					})
 				}
